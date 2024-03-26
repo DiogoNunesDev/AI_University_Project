@@ -15,7 +15,7 @@ public class NeuralNetwork implements GameController{
 
     /*
      * Breakout Game: 2 output neurons -> [LEFT, RIGHT]
-     * - 1st approach hidden layer will be a fully connected layer with shape 4 times as the input layer shape 
+     * 
      * 
      * 
      * 
@@ -25,17 +25,31 @@ public class NeuralNetwork implements GameController{
 
     @Override
     public int nextMove(int[] currentState) {
-        double[] inputValues = new double[currentState.length];
-        for (int i = 0; i < currentState.length; i++) {
-            inputValues[i] = (double) currentState[i];
-        }
-        double[] output = forward(inputValues);
+        double[] normalizedData = normalize(currentState);
+        double[] output = forward(normalizedData);
         if (output[0] > output[1]) {
             return 1;
         } 
         return 2;
     }
 
+    private double[] normalize(int[] data) {
+        double min = Double.MAX_VALUE;
+        double max = Double.MIN_VALUE;
+        double normalizedData[] = new double[data.length];
+        // Find min and max values
+        for (double value : data) {
+            min = Math.min(min, value);
+            max = Math.max(max, value);
+        }
+
+        // Normalize the data
+        for (int i = 0; i < data.length; i++) {
+            normalizedData[i] = (double) ((data[i] - min) / (max - min));
+        }
+
+        return normalizedData;
+    }
 
     public NeuralNetwork(int inputDim, int hiddenDim, int outputDim) {
         this.inputDim = inputDim;

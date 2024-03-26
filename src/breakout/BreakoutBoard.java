@@ -13,6 +13,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.Arrays;
 import java.util.Random;
 
 import javax.swing.JPanel;
@@ -38,6 +39,7 @@ public class BreakoutBoard extends JPanel {
 	private Random r = new Random();
 	private double time;
 	private int kills;
+	private int not_hitting_ball_penalty = 0;
 
 	public BreakoutBoard() {
 		this.withGui = true;
@@ -100,6 +102,10 @@ public class BreakoutBoard extends JPanel {
 			if (time > 100000)
 				break;
 		}
+	}
+
+	public void setController(GameController controller) {
+		this.controller = controller;
 	}
 
 	public void setSeed(int seed) {
@@ -177,6 +183,7 @@ public class BreakoutBoard extends JPanel {
 		checkCollision();
 		time++;
 		repaint();
+
 	}
 
 	private void stopGame() {
@@ -200,12 +207,11 @@ public class BreakoutBoard extends JPanel {
 
 			int paddleLPos = (int) paddle.getRect().getMinX();
 			int ballLPos = (int) ball.getRect().getMinX();
-
 			int first = paddleLPos + 8;
 			int second = paddleLPos + 16;
 			int third = paddleLPos + 24;
 			int fourth = paddleLPos + 32;
-
+			
 			if (ballLPos < first) {
 				ball.setXDir(-1);
 				ball.setYDir(-1);
