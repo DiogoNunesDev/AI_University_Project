@@ -671,7 +671,7 @@ public class PacmanBoard extends JPanel implements ActionListener {
 	}
 
 	public int getScore() {
-		return score * 1000 + steps / 100;
+		return score * 1000;
 	}
 
 	@Override
@@ -708,6 +708,7 @@ public class PacmanBoard extends JPanel implements ActionListener {
 	}
 
 	public double getFitness() {
-		return getScore();
+		int deathPenalty = -25000 * (3 - pacsLeft);
+		return getScore() + deathPenalty + 2 * steps;
 	}
 }

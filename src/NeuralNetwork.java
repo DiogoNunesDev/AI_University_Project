@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Random;
 import utils.GameController;
 
-public class NeuralNetwork implements GameController{
+public class NeuralNetwork implements GameController {
     private int inputDim;
     private int hiddenDim;
     private int outputDim;
@@ -27,9 +27,9 @@ public class NeuralNetwork implements GameController{
     public int nextMove(int[] currentState) {
         double[] normalizedData = normalize(currentState);
         double[] output = forward(normalizedData);
-        if (output[0] > output[1]) {
+        if (output[0] < output[1]) {
             return 1;
-        } 
+        }
         return 2;
     }
 
@@ -94,20 +94,20 @@ public class NeuralNetwork implements GameController{
         }
     }
 
-    public void initializeParameters(){
+    public void initializeParameters() {
         Random random = new Random();
-        for(int i = 0; i < hiddenDim; i++){
+        for (int i = 0; i < hiddenDim; i++) {
             hiddenBiases[i] = random.nextDouble() * 2 - 1;
-            for(int j = 0; j < outputDim; j++) {
+            for (int j = 0; j < outputDim; j++) {
                 outputWeights[i][j] = random.nextDouble() * 2 - 1;
             }
 
         }
-        for(int j = 0; j < outputDim; j++) {
+        for (int j = 0; j < outputDim; j++) {
             outputBiases[j] = random.nextDouble() * 2 - 1;
         }
-        for(int i = 0; i < inputDim; i++){
-            for(int j = 0; j < hiddenDim; j++) {
+        for (int i = 0; i < inputDim; i++) {
+            for (int j = 0; j < hiddenDim; j++) {
                 this.hiddenWeights[i][j] = random.nextDouble() * 2 - 1;
             }
 
@@ -137,23 +137,23 @@ public class NeuralNetwork implements GameController{
         }
     }
 
-    private double sigmoid(double x){
+    private double sigmoid(double x) {
         return 1.0 / (1 + Math.exp(-x));
     }
 
     public double[] forward(double[] inputValues) {
         double[] hiddenLayer = new double[hiddenDim];
-        for(int i = 0; i < hiddenDim; i++){
+        for (int i = 0; i < hiddenDim; i++) {
             double value = this.hiddenBiases[i];
-            for(int j = 0; j < inputDim; j++){
+            for (int j = 0; j < inputDim; j++) {
                 value += (this.hiddenWeights[j][i] * inputValues[j]);
             }
             hiddenLayer[i] = sigmoid(value);
         }
         double[] outputLayer = new double[outputDim];
-        for(int i = 0; i < outputDim; i++){
+        for (int i = 0; i < outputDim; i++) {
             double value = this.outputBiases[i];
-            for(int j = 0; j < hiddenDim; j++){
+            for (int j = 0; j < hiddenDim; j++) {
                 value += (this.outputWeights[j][i] * hiddenLayer[j]);
             }
             outputLayer[i] = sigmoid(value);
@@ -164,20 +164,22 @@ public class NeuralNetwork implements GameController{
 
     public double[] getNeuralNetwork() {
         List<Double> nn = new ArrayList<>();
-        for(int i=0; i < this.inputDim; i++){
+        for (int i = 0; i < this.inputDim; i++) {
             for (int j = 0; j < this.hiddenDim; j++) {
                 nn.add(this.hiddenWeights[i][j]);
             }
             nn.add(this.hiddenBiases[i]);
         }
-        for(int i=0; i < this.hiddenDim; i++){
+        for (int i = 0; i < this.hiddenDim; i++) {
             for (int j = 0; j < outputDim; j++) {
                 nn.add(this.outputWeights[i][j]);
             }
             nn.add(this.outputBiases[i]);
         }
-        double [] neuralNetwork = new double[nn.size()];
-        for(int i = 0; i < nn.size(); i++){ neuralNetwork[i] = nn.get(i);}
+        double[] neuralNetwork = new double[nn.size()];
+        for (int i = 0; i < nn.size(); i++) {
+            neuralNetwork[i] = nn.get(i);
+        }
 
         return neuralNetwork;
     }
@@ -186,7 +188,7 @@ public class NeuralNetwork implements GameController{
     public String toString() {
         String result = "Neural Network: \nNumber of inputs: "
                 + inputDim + "\n"
-                + "Weights between input and hidden layer with " + hiddenDim + " neurons: \n" ;
+                + "Weights between input and hidden layer with " + hiddenDim + " neurons: \n";
         String hidden = "";
         for (int input = 0; input < inputDim; input++) {
             for (int i = 0; i < hiddenDim; i++) {
@@ -217,5 +219,4 @@ public class NeuralNetwork implements GameController{
         return result;
     }
 
-    
 }

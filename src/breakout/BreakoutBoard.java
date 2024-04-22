@@ -39,7 +39,11 @@ public class BreakoutBoard extends JPanel {
 	private Random r = new Random();
 	private double time;
 	private int kills;
-	private int not_hitting_ball_penalty = 0;
+	private int game_over_penalty = 0;
+	private int hitting_ball_count = 0;
+	private int hitting_ball_bonus = 0;
+	private int loop_penalty = 0; 
+
 
 	public BreakoutBoard() {
 		this.withGui = true;
@@ -113,7 +117,7 @@ public class BreakoutBoard extends JPanel {
 	}
 
 	public double getFitness() {
-		return kills * 100000 + 100000 - time;
+		return kills * 100000 + 100000 - game_over_penalty + hitting_ball_bonus - loop_penalty;
 	}
 
 	private int[] getState() {
@@ -200,17 +204,24 @@ public class BreakoutBoard extends JPanel {
 
 	private void checkCollision() {
 		if (ball.getRect().getMaxY() > Commons.BOTTOM_EDGE) {
+			game_over_penalty += 100000;
 			stopGame();
 		}
 
 		if ((ball.getRect()).intersects(paddle.getRect())) {
-
+			
 			int paddleLPos = (int) paddle.getRect().getMinX();
 			int ballLPos = (int) ball.getRect().getMinX();
 			int first = paddleLPos + 8;
 			int second = paddleLPos + 16;
 			int third = paddleLPos + 24;
 			int fourth = paddleLPos + 32;
+			ball.setY(paddle.getY()- paddle.getImageHeight()/2-1);
+			if(hitting_ball_count > 3){
+				loop_penalty += 30000;
+			}
+			hitting_ball_count++;
+			hitting_ball_bonus += 100;
 			
 			if (ballLPos < first) {
 				ball.setXDir(-1);
@@ -245,6 +256,7 @@ public class BreakoutBoard extends JPanel {
 				int ballHeight = (int) ball.getRect().getHeight();
 				int ballWidth = (int) ball.getRect().getWidth();
 				int ballTop = (int) ball.getRect().getMinY();
+				hitting_ball_count = 0;
 
 				var pointRight = new Point(ballLeft + ballWidth + 1, ballTop);
 				var pointLeft = new Point(ballLeft - 1, ballTop);

@@ -1,25 +1,29 @@
 import utils.*;
 
 import java.util.Arrays;
-
 import breakout.*;
+import model.*;
+import pacman.*;
+import utils.Commons.*;
 
 public class Main {
-  
+
   public static void main(String[] args) {
-    
-    //GeneticAlgorithm algorithm = new GeneticAlgorithm(5000, 10000, 0.01, 0.3, 5, 0.05,  Commons.BREAKOUT_STATE_SIZE, 512, 2);
-    //double[] solution = algorithm.evolve();
-    
-    GeneticAlgo_V2 genAlgo = new GeneticAlgo_V2(500, 100, 0.1, 0.3, 5, 0.05,  Commons.BREAKOUT_STATE_SIZE, 252, 2);
+
+    FlexibleNeuralNetwork nn = new FlexibleNeuralNetwork();
+    nn.addLayer(Commons.BREAKOUT_STATE_SIZE, 128, "relu");
+    nn.addLayer(128, 64, "relu");
+    nn.addLayer(64, 2, "sigmoid");
+    System.out.println(nn.toString());
+
+    int HIDDEN_DIM = 126;
+    GeneticAlgo_V2 genAlgo = new GeneticAlgo_V2(nn, 1000, 1000, 0.25, 0.5, 5, 0.02);
     double[] solution = genAlgo.evolve();
-    NeuralNetwork nn = new NeuralNetwork(7, 252, 2);
-    nn.setNeuralNetwork(solution);
-    BreakoutBoard bd = new BreakoutBoard(nn, false, 42);
-    bd.runSimulation();
-    System.out.println(bd.getFitness());
+    // NeuralNetwork nn = new NeuralNetwork(7, HIDDEN_DIM, 2);
+    nn.setParameters(solution);
+    //Pacman pacman = new Pacman(nn, true, 42);
+
     Breakout breakout = new Breakout(nn, 42);
-    System.out.println(Arrays.toString(solution));
 
   }
 
