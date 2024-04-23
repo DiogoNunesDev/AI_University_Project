@@ -103,6 +103,9 @@ public class PacmanBoard extends JPanel implements ActionListener {
 
 	private int previous_y;
 
+	private int iddleCount;
+	private int iddlePenalty;
+
 	public PacmanBoard(GameController controller, boolean withGui, int seed) {
 		this.controller = controller;
 		this.withGui = withGui;
@@ -162,7 +165,6 @@ public class PacmanBoard extends JPanel implements ActionListener {
 	}
 
 	public void makeMove(int move) {
-
 		if (move == NONE) {
 			req_dx = 0;
 			req_dy = 0;
@@ -428,7 +430,13 @@ public class PacmanBoard extends JPanel implements ActionListener {
 		}
 		pacman_x = pacman_x + BLOCK_SIZE * pacmand_x;
 		pacman_y = pacman_y + BLOCK_SIZE * pacmand_y;
-
+		
+		if(previous_x==pacman_x && previous_y==pacman_y) {
+			iddleCount++;
+		}
+		if(iddleCount>3){
+			iddlePenalty+=5000;
+		}
 	}
 
 	private void drawPacman(Graphics2D g2d) {
@@ -679,6 +687,9 @@ public class PacmanBoard extends JPanel implements ActionListener {
 		if (inGame)
 			steps++;
 
+		previous_x = pacman_x;
+		previous_y = pacman_y;
+
 		int action = controller.nextMove(getState());
 		makeMove(action);
 		repaint();
@@ -708,7 +719,7 @@ public class PacmanBoard extends JPanel implements ActionListener {
 	}
 
 	public double getFitness() {
-		int deathPenalty = -25000 * (3 - pacsLeft);
-		return getScore() + deathPenalty + 2 * steps;
+		int deathPenalty = 75000 * (3 - pacsLeft);
+		return 2 * getScore() + steps - deathPenalty - iddlePenalty;
 	}
 }

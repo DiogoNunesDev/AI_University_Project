@@ -1,4 +1,5 @@
 package model;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
@@ -17,7 +18,8 @@ public class GeneticAlgo_V2 {
   private FlexibleNeuralNetwork nn;
   private Map<double[], Double> fitnessMap;
 
-  public GeneticAlgo_V2(FlexibleNeuralNetwork nn, int maxPopulation, int generationMax, double mutationProbability, double crossoverProbability,
+  public GeneticAlgo_V2(FlexibleNeuralNetwork nn, int maxPopulation, int generationMax, double mutationProbability,
+      double crossoverProbability,
       int tournamentSize, double elitismRate) {
     this.maxPopulation = maxPopulation;
     this.generationMax = generationMax;
@@ -33,21 +35,18 @@ public class GeneticAlgo_V2 {
 
   public double[] evolve() {
     List<double[]> population = generatePopulation();
-    int seed1 = random.nextInt(100) + 1;
-    int seed2 = random.nextInt(100) + 1;
-    int[] seeds = new int[3];
-    seeds[0] = seed1;
-    seeds[1] = seed2;
+    int[] seeds = generateUniqueSeeds(3);
+    System.out.println("Training with the following seeds: " + Arrays.toString(seeds));
 
     double bestFitness = -Double.MAX_VALUE;
     double[] bestIndividual = null;
+    double[] bestSeedFitness = new double[seeds.length];
     int count = 1;
-
 
     for (int generation = 0; generation < generationMax; generation++) {
       // Calculating fitness for each individual if not already evaluated
       for (double[] individual : population) {
-        fitnessMap.putIfAbsent(individual, getFitnessBreakout(individual, seeds));
+        fitnessMap.putIfAbsent(individual, getFitness(individual, seeds));
       }
 
       // Sort population based on fitness
@@ -57,32 +56,47 @@ public class GeneticAlgo_V2 {
       if (fitnessMap.get(population.get(0)) > bestFitness) {
         bestFitness = fitnessMap.get(population.get(0));
         bestIndividual = population.get(0);
+        for (int i = 0; i < seeds.length; i++) {
+          bestSeedFitness[i] = getFitnessPacman(bestIndividual, seeds[i]);
+        }
         count = 0;
-        if(count==0 && mutationProbability > 0.4){
+        if (count == 0 && mutationProbability > 0.4) {
           mutationProbability = 0.25;
-          System.out.println("Mutation rate decreased to: " + mutationProbability + " at generation " + generation + " due to improvement.");
+          System.out.println("Mutation rate decreased to: " + mutationProbability + " at generation " + generation
+              + " due to improvement.");
         }
         writeBestSolutionToFile(bestIndividual, bestFitness);
-      }else{
+      } else {
         count++;
       }
 
-      System.out.println("Generation " + generation + ": Best fitness = " + bestFitness);
+      System.out.println("Generation " + generation + ": Best fitness: \n" + "Seed " + seeds[0] + ": "
+          + bestSeedFitness[0] + "\n" + "Seed " + seeds[1] + ": " + bestSeedFitness[1] + "\n" + "Seed " + seeds[2] + ": "
+          + bestSeedFitness[2] + "\n" + "Overall: " + bestFitness);
+          System.out.println("_________________________________________________________________________________");
 
       /*
        * 
-       * Mutation rate will change over time depending on the convergence rate of the algorithm.
+       * Mutation rate will change over time depending on the convergence rate of the
+       * algorithm.
        * 
        */
 
-      if(count >= 25 && mutationProbability < 0.8){
+      if (count >= 25 && mutationProbability < 0.8) {
         mutationProbability += 0.1;
-        System.out.println("Mutation rate increased to: " + mutationProbability + " at generation " + generation + " due to stagnation."); 
+        System.out.println("Mutation rate increased to: " + mutationProbability + " at generation " + generation
+            + " due to stagnation.");
+        count = 0;
+      }
+
+      if (count >= 25 && mutationProbability > 0.8) {
+        mutationProbability = 0.25;
+        System.out.println("Mutation rate decreased to: " + mutationProbability + " at generation " + generation
+            + " due to stagnation.");
         count = 0;
       }
 
       List<double[]> newPopulation = new ArrayList<>();
-
 
       // Elitism: Keeping the best individuals untouched
       int eliteCount = (int) (maxPopulation * elitismRate);
@@ -115,6 +129,7 @@ public class GeneticAlgo_V2 {
     return bestIndividual;
   }
 
+  
   private void writeBestSolutionToFile(double[] bestIndividual, double bestFitness) {
     try {
       FileWriter writer = new FileWriter("src\\model\\best_solution_pacman.txt");
@@ -128,50 +143,62 @@ public class GeneticAlgo_V2 {
     }
   }
 
-  private double getFitnessBreakout(double[] solution, int[] seeds) {
-    int randomSeed = random.nextInt(100) + 1;
-    seeds[2] = randomSeed;
-    nn.setParameters(solution);
-    int totalPoints = 0;
-    for (int seed : seeds) {
-      BreakoutBoard breakout = new BreakoutBoard(nn, false, seed);
-      breakout.runSimulation();
-      totalPoints += breakout.getFitness();
-    }
+  private int[] generateUniqueSeeds(int numSeeds) {
+    Random random = new Random();
+    int[] seeds = new int[numSeeds];
+    Set<Integer> seedSet = new HashSet<>();
 
+    for (int i = 0; i < numSeeds; i++) {
+      int seed;
+      do {
+        seed = random.nextInt(100) + 1;
+      } while (seedSet.contains(seed));
+      seeds[i] = seed;
+      seedSet.add(seed);
+    }
+    return seeds;
+  }
+
+  private double getFitness(double[] solution, int[] seeds) {
+    double [] seedsResults = new double[seeds.length]; 
+    double totalPoints = 0;
+    for (int i = 0; i < seeds.length; i++) {
+      double fitness = getFitnessPacman(solution, seeds[i]);
+      totalPoints += fitness;
+      seedsResults[i] = fitness;
+    }
     return totalPoints / seeds.length;
   }
 
-  private double getFitnessPacman(double[] solution, int[] seeds) {
-    int randomSeed = random.nextInt(100) + 1;
-    seeds[2] = randomSeed;
+  private double getFitnessBreakout(double[] solution, int seed) {
     nn.setParameters(solution);
-    int totalPoints = 0;
-    for (int seed : seeds) {
-      PacmanBoard pacman = new PacmanBoard(nn, false, seed);
-      pacman.runSimulation();
-      totalPoints += pacman.getFitness();
-    }
+    BreakoutBoard breakout = new BreakoutBoard(nn, false, seed);
+    breakout.runSimulation();
+    return breakout.getFitness();
+  }
 
-    return totalPoints / seeds.length;
+  private double getFitnessPacman(double[] solution, int seed) {
+    nn.setParameters(solution);
+    PacmanBoard pacman = new PacmanBoard(nn, false, seed);
+    pacman.runSimulation();
+    return pacman.getFitness();
   }
 
   /*
-  private List<double[]> generatePopulation() {
-    List<double[]> population = new ArrayList<>();
-    for (int i = 0; i < maxPopulation; i++) {
-      double[] array = createRandomWeightsAndBiases();
-      ;
-      population.add(array);
-    }
-    return population;
-  }
-  */
+   * private List<double[]> generatePopulation() {
+   * List<double[]> population = new ArrayList<>();
+   * for (int i = 0; i < maxPopulation; i++) {
+   * double[] array = createRandomWeightsAndBiases();
+   * ;
+   * population.add(array);
+   * }
+   * return population;
+   * }
+   */
   private List<double[]> generatePopulation() {
     List<double[]> population = new ArrayList<>();
     for (int i = 0; i < maxPopulation; i++) {
       double[] array = nn.generateRandomParameters();
-      ;
       population.add(array);
     }
     return population;
