@@ -1,6 +1,7 @@
 package model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import utils.GameController;
@@ -91,16 +92,17 @@ public class FlexibleNeuralNetwork implements GameController {
 
   private double[] softmax(double[] inputs) {
     double[] exps = new double[inputs.length];
+    double maxInput = Arrays.stream(inputs).max().getAsDouble();
     double sumExps = 0.0;
     for (int i = 0; i < inputs.length; i++) {
-        exps[i] = Math.exp(inputs[i]);
-        sumExps += exps[i];
+      exps[i] = Math.exp(inputs[i] - maxInput);
+      sumExps += exps[i];
     }
     for (int i = 0; i < inputs.length; i++) {
-        exps[i] /= sumExps;
+      exps[i] /= sumExps;
     }
     return exps;
-}
+  }
 
   @Override
   public int nextMove(int[] currentState) {

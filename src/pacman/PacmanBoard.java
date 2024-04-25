@@ -434,7 +434,7 @@ public class PacmanBoard extends JPanel implements ActionListener {
 		if(previous_x==pacman_x && previous_y==pacman_y) {
 			iddleCount++;
 		}
-		if(iddleCount>3){
+		if(iddleCount>4){
 			iddlePenalty+=5000;
 		}
 	}
@@ -720,6 +720,6 @@ public class PacmanBoard extends JPanel implements ActionListener {
 
 	public double getFitness() {
 		int deathPenalty = 75000 * (3 - pacsLeft);
-		return 2 * getScore() + steps - deathPenalty - iddlePenalty;
+		return 2 * getScore() + steps * 100 - deathPenalty - iddlePenalty;
 	}
 }

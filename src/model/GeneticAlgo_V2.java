@@ -35,7 +35,8 @@ public class GeneticAlgo_V2 {
 
   public double[] evolve() {
     List<double[]> population = generatePopulation();
-    int[] seeds = generateUniqueSeeds(3);
+    //int[] seeds = generateUniqueSeeds(1);
+    int [] seeds = {42};
     System.out.println("Training with the following seeds: " + Arrays.toString(seeds));
 
     double bestFitness = -Double.MAX_VALUE;
@@ -57,7 +58,7 @@ public class GeneticAlgo_V2 {
         bestFitness = fitnessMap.get(population.get(0));
         bestIndividual = population.get(0);
         for (int i = 0; i < seeds.length; i++) {
-          bestSeedFitness[i] = getFitnessPacman(bestIndividual, seeds[i]);
+          bestSeedFitness[i] = getFitnessBreakout(bestIndividual, seeds[i]);
         }
         count = 0;
         if (count == 0 && mutationProbability > 0.4) {
@@ -70,11 +71,13 @@ public class GeneticAlgo_V2 {
         count++;
       }
 
-      System.out.println("Generation " + generation + ": Best fitness: \n" + "Seed " + seeds[0] + ": "
-          + bestSeedFitness[0] + "\n" + "Seed " + seeds[1] + ": " + bestSeedFitness[1] + "\n" + "Seed " + seeds[2] + ": "
-          + bestSeedFitness[2] + "\n" + "Overall: " + bestFitness);
-          System.out.println("_________________________________________________________________________________");
-
+      /*System.out.println("Generation " + generation + ": Best fitness: \n" + "Seed " + seeds[0] + ": "
+          + bestSeedFitness[0] + "\n" + "Seed " + seeds[1] + ": " + bestSeedFitness[1] + "\n" + "Seed " + seeds[2]
+          + ": "
+          + bestSeedFitness[2] + "\n" + "Overall: " + bestFitness);*/
+      System.out.println("Generation " + generation + ": Best fitness: " + bestFitness);
+      //System.out.println("_________________________________________________________________________________");
+      
       /*
        * 
        * Mutation rate will change over time depending on the convergence rate of the
@@ -102,26 +105,21 @@ public class GeneticAlgo_V2 {
       int eliteCount = (int) (maxPopulation * elitismRate);
       newPopulation.addAll(population.subList(0, eliteCount));
 
-      // Generate new individuals until the population is filled with the use of
+      // Generating new individuals until the population is filled with the use of
       // Tournament Selection and Crossover
       while (newPopulation.size() < maxPopulation) {
         double[] parent1 = tournamentSelection(population, fitnessMap);
         double[] parent2 = tournamentSelection(population, fitnessMap);
 
         // Crossover
-        if (random.nextDouble() < crossoverProbability) {
-          newPopulation.addAll(Arrays.asList(crossover(parent1, parent2)));
-        } else {
-          newPopulation.add(parent1.clone());
-          newPopulation.add(parent2.clone());
-        }
+        newPopulation.addAll(Arrays.asList(crossover(parent1, parent2))); 
       }
 
       // Mutation: mutating only the non-elite individuals
       for (int i = eliteCount; i < newPopulation.size(); i++) {
         mutate(newPopulation.get(i), generation);
       }
-      // Update population
+      // Updating population
       population = newPopulation.subList(0, maxPopulation);
       // Reseting fitness map for the new generation
       fitnessMap = new HashMap<>();
@@ -129,10 +127,9 @@ public class GeneticAlgo_V2 {
     return bestIndividual;
   }
 
-  
   private void writeBestSolutionToFile(double[] bestIndividual, double bestFitness) {
     try {
-      FileWriter writer = new FileWriter("src\\model\\best_solution_pacman.txt");
+      FileWriter writer = new FileWriter("src\\model\\best_solution_breakout.txt");
       System.out.println("Printing best solution to file...");
       writer.write("Neural Network Architecture: " + nn.toString() + "\n\n");
       writer.write("Best Fitness: " + bestFitness + "\n");
@@ -163,7 +160,7 @@ public class GeneticAlgo_V2 {
     double [] seedsResults = new double[seeds.length]; 
     double totalPoints = 0;
     for (int i = 0; i < seeds.length; i++) {
-      double fitness = getFitnessPacman(solution, seeds[i]);
+      double fitness = getFitnessBreakout(solution, seeds[i]);
       totalPoints += fitness;
       seedsResults[i] = fitness;
     }

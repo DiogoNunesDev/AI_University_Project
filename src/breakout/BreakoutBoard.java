@@ -117,7 +117,7 @@ public class BreakoutBoard extends JPanel {
 	}
 
 	public double getFitness() {
-		return kills * 100000 + 100000 - game_over_penalty + hitting_ball_bonus - loop_penalty;
+		return kills * 100000 + 100000 - time; //+ 100000 - game_over_penalty + hitting_ball_bonus - loop_penalty;
 	}
 
 	private int[] getState() {
