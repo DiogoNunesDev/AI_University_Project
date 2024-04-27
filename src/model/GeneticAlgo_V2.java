@@ -58,7 +58,7 @@ public class GeneticAlgo_V2 {
         bestFitness = fitnessMap.get(population.get(0));
         bestIndividual = population.get(0);
         for (int i = 0; i < seeds.length; i++) {
-          bestSeedFitness[i] = getFitnessBreakout(bestIndividual, seeds[i]);
+          bestSeedFitness[i] = getFitnessPacman(bestIndividual, seeds[i]);
         }
         count = 0;
         if (count == 0 && mutationProbability > 0.4) {
@@ -129,7 +129,7 @@ public class GeneticAlgo_V2 {
 
   private void writeBestSolutionToFile(double[] bestIndividual, double bestFitness) {
     try {
-      FileWriter writer = new FileWriter("src\\model\\best_solution_breakout.txt");
+      FileWriter writer = new FileWriter("src\\model\\best_solution_pacman_3.txt");
       System.out.println("Printing best solution to file...");
       writer.write("Neural Network Architecture: " + nn.toString() + "\n\n");
       writer.write("Best Fitness: " + bestFitness + "\n");
@@ -160,7 +160,7 @@ public class GeneticAlgo_V2 {
     double [] seedsResults = new double[seeds.length]; 
     double totalPoints = 0;
     for (int i = 0; i < seeds.length; i++) {
-      double fitness = getFitnessBreakout(solution, seeds[i]);
+      double fitness = getFitnessPacman(solution, seeds[i]);
       totalPoints += fitness;
       seedsResults[i] = fitness;
     }

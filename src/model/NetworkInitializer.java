@@ -7,13 +7,17 @@ import breakout.*;
 
 public class NetworkInitializer {
   public static void main(String[] args) {
-    String filePath = "src\\model\\best_solution_breakout.txt";
+    String filePath = "src\\model\\best_solution_pacman.txt";
     FlexibleNeuralNetwork network = new FlexibleNeuralNetwork();
 
     if (initializeNetworkFromFile(filePath, network)) {
       System.out.println("Network initialized successfully with layers and parameters from the file.");
       System.out.println(network);
-      Breakout breakout = new Breakout(network, 42);
+      //Breakout breakout = new Breakout(network, 42);
+      Pacman pacman = new Pacman(network, true, 42);
+      //PacmanBoard pacmanBoard = new PacmanBoard(network, false, 42);
+      //pacmanBoard.runSimulation();
+      //pacmanBoard.getFitness();
     } else {
       System.out.println("Failed to initialize network from file.");
     }

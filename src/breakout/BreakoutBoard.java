@@ -117,7 +117,7 @@ public class BreakoutBoard extends JPanel {
 	}
 
 	public double getFitness() {
-		return kills * 100000 + 100000 - time; //+ 100000 - game_over_penalty + hitting_ball_bonus - loop_penalty;
+		return kills * 100000 + 100000 - game_over_penalty + hitting_ball_bonus - loop_penalty - time;
 	}
 
 	private int[] getState() {
@@ -218,7 +218,7 @@ public class BreakoutBoard extends JPanel {
 			int fourth = paddleLPos + 32;
 			ball.setY(paddle.getY()- paddle.getImageHeight()/2-1);
 			if(hitting_ball_count > 3){
-				loop_penalty += 30000;
+				loop_penalty += 50000;
 			}
 			hitting_ball_count++;
 			hitting_ball_bonus += 100;

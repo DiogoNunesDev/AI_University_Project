@@ -8,12 +8,17 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Random;
+import java.util.Set;
 
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
@@ -102,9 +107,15 @@ public class PacmanBoard extends JPanel implements ActionListener {
 	private int previous_x;
 
 	private int previous_y;
-
+	
+	private int previous_pos;
 	private int iddleCount;
 	private int iddlePenalty;
+	private Set<Point> visitedBlocks = new HashSet<>();
+	private int proximityToGhostsPenlaty = 0;
+	private HashMap<Point, Integer> visitCounts = new HashMap<>();
+	private LinkedList<int[]> recentVisits = new LinkedList<>();
+	private final int TIME_WINDOW = 8;
 
 	public PacmanBoard(GameController controller, boolean withGui, int seed) {
 		this.controller = controller;
@@ -149,6 +160,8 @@ public class PacmanBoard extends JPanel implements ActionListener {
 		initGame();
 		inGame = true;
 		while (inGame) {
+			previous_x = pacman_x;
+			previous_y = pacman_y;
 			int action = controller.nextMove(getState());
 			makeMove(action);
 
@@ -430,13 +443,25 @@ public class PacmanBoard extends JPanel implements ActionListener {
 		}
 		pacman_x = pacman_x + BLOCK_SIZE * pacmand_x;
 		pacman_y = pacman_y + BLOCK_SIZE * pacmand_y;
-		
-		if(previous_x==pacman_x && previous_y==pacman_y) {
+
+		if(previous_x == pacman_x && previous_y == pacman_y){
 			iddleCount++;
+			iddlePenalty += (iddleCount * 500 < 2500) ? iddleCount * 500 : 2500;
+		}else{
+			iddleCount = 0;
 		}
-		if(iddleCount>4){
-			iddlePenalty+=5000;
+
+		Point blockVisited = new Point(pacman_x, pacman_y);
+
+		visitCounts.put(blockVisited, visitCounts.getOrDefault(blockVisited, 0) + 1);
+
+		calculateIdlenessPenalty(blockVisited, steps);
+
+		if (!visitedBlocks.contains(blockVisited)) {
+			visitedBlocks.add(blockVisited);
 		}
+
+		pacmanProximityToGhosts(ghost_x, ghost_y, pacman_x, pacman_y);
 	}
 
 	private void drawPacman(Graphics2D g2d) {
@@ -455,72 +480,72 @@ public class PacmanBoard extends JPanel implements ActionListener {
 	private void drawPacmanUp(Graphics2D g2d) {
 
 		switch (pacmanAnimPos) {
-		case 1:
-			g2d.drawImage(pacman2up, pacman_x + 1, pacman_y + 1, this);
-			break;
-		case 2:
-			g2d.drawImage(pacman3up, pacman_x + 1, pacman_y + 1, this);
-			break;
-		case 3:
-			g2d.drawImage(pacman4up, pacman_x + 1, pacman_y + 1, this);
-			break;
-		default:
-			g2d.drawImage(pacman1, pacman_x + 1, pacman_y + 1, this);
-			break;
+			case 1:
+				g2d.drawImage(pacman2up, pacman_x + 1, pacman_y + 1, this);
+				break;
+			case 2:
+				g2d.drawImage(pacman3up, pacman_x + 1, pacman_y + 1, this);
+				break;
+			case 3:
+				g2d.drawImage(pacman4up, pacman_x + 1, pacman_y + 1, this);
+				break;
+			default:
+				g2d.drawImage(pacman1, pacman_x + 1, pacman_y + 1, this);
+				break;
 		}
 	}
 
 	private void drawPacmanDown(Graphics2D g2d) {
 
 		switch (pacmanAnimPos) {
-		case 1:
-			g2d.drawImage(pacman2down, pacman_x + 1, pacman_y + 1, this);
-			break;
-		case 2:
-			g2d.drawImage(pacman3down, pacman_x + 1, pacman_y + 1, this);
-			break;
-		case 3:
-			g2d.drawImage(pacman4down, pacman_x + 1, pacman_y + 1, this);
-			break;
-		default:
-			g2d.drawImage(pacman1, pacman_x + 1, pacman_y + 1, this);
-			break;
+			case 1:
+				g2d.drawImage(pacman2down, pacman_x + 1, pacman_y + 1, this);
+				break;
+			case 2:
+				g2d.drawImage(pacman3down, pacman_x + 1, pacman_y + 1, this);
+				break;
+			case 3:
+				g2d.drawImage(pacman4down, pacman_x + 1, pacman_y + 1, this);
+				break;
+			default:
+				g2d.drawImage(pacman1, pacman_x + 1, pacman_y + 1, this);
+				break;
 		}
 	}
 
 	private void drawPacnanLeft(Graphics2D g2d) {
 
 		switch (pacmanAnimPos) {
-		case 1:
-			g2d.drawImage(pacman2left, pacman_x + 1, pacman_y + 1, this);
-			break;
-		case 2:
-			g2d.drawImage(pacman3left, pacman_x + 1, pacman_y + 1, this);
-			break;
-		case 3:
-			g2d.drawImage(pacman4left, pacman_x + 1, pacman_y + 1, this);
-			break;
-		default:
-			g2d.drawImage(pacman1, pacman_x + 1, pacman_y + 1, this);
-			break;
+			case 1:
+				g2d.drawImage(pacman2left, pacman_x + 1, pacman_y + 1, this);
+				break;
+			case 2:
+				g2d.drawImage(pacman3left, pacman_x + 1, pacman_y + 1, this);
+				break;
+			case 3:
+				g2d.drawImage(pacman4left, pacman_x + 1, pacman_y + 1, this);
+				break;
+			default:
+				g2d.drawImage(pacman1, pacman_x + 1, pacman_y + 1, this);
+				break;
 		}
 	}
 
 	private void drawPacmanRight(Graphics2D g2d) {
 
 		switch (pacmanAnimPos) {
-		case 1:
-			g2d.drawImage(pacman2right, pacman_x + 1, pacman_y + 1, this);
-			break;
-		case 2:
-			g2d.drawImage(pacman3right, pacman_x + 1, pacman_y + 1, this);
-			break;
-		case 3:
-			g2d.drawImage(pacman4right, pacman_x + 1, pacman_y + 1, this);
-			break;
-		default:
-			g2d.drawImage(pacman1, pacman_x + 1, pacman_y + 1, this);
-			break;
+			case 1:
+				g2d.drawImage(pacman2right, pacman_x + 1, pacman_y + 1, this);
+				break;
+			case 2:
+				g2d.drawImage(pacman3right, pacman_x + 1, pacman_y + 1, this);
+				break;
+			case 3:
+				g2d.drawImage(pacman4right, pacman_x + 1, pacman_y + 1, this);
+				break;
+			default:
+				g2d.drawImage(pacman1, pacman_x + 1, pacman_y + 1, this);
+				break;
 		}
 	}
 
@@ -687,9 +712,6 @@ public class PacmanBoard extends JPanel implements ActionListener {
 		if (inGame)
 			steps++;
 
-		previous_x = pacman_x;
-		previous_y = pacman_y;
-
 		int action = controller.nextMove(getState());
 		makeMove(action);
 		repaint();
@@ -718,8 +740,60 @@ public class PacmanBoard extends JPanel implements ActionListener {
 		r.setSeed(seed);
 	}
 
+	/*
+	 * 
+	 * This fitness function allows for pacman to want to score points, explore the
+	 * map, not die permaturaly,
+	 * not iddle in the same block as well as in a fraction of the map, makes
+	 * him "conscious" about the need to keep a certain distance to ghosts, and finnaly promotes better eating efficiency.
+	 * This aims to create a balance between trying to obtain more score and getting closer to the ghosts.
+	 */
+
 	public double getFitness() {
-		int deathPenalty = 75000 * (3 - pacsLeft);
-		return 2 * getScore() + steps * 100 - deathPenalty - iddlePenalty;
+		int deathPenalty = 50000 * (2 - pacsLeft);
+		int mapExplorationBonus = visitedBlocks.size() * 1000;
+		int eatingEfficiency = (score / steps) * 5000; 
+		int fitness = getScore() + eatingEfficiency + mapExplorationBonus - deathPenalty - iddlePenalty;
+		return fitness;
+	}
+
+	/*
+	 * This method allows pacman to learn to keep a certain distance from the ghosts,
+	 * because the amount of penalty will increase the closer he is to a ghost.
+	 * And it is applying a penalty on the distance to every ghost.
+	 */
+	private void pacmanProximityToGhosts(int[] ghostXs, int[] ghostYs, int pacman_x, int pacman_y) {
+		for (int i = 0; i < N_GHOSTS; i++) {
+			double pixelDistance = Math.sqrt(Math.pow(ghostXs[i] - pacman_x, 2) + Math.pow(ghostYs[i] - pacman_y, 2));
+			double blockDistance = pixelDistance / BLOCK_SIZE;
+			if (blockDistance < 2.5) {
+				proximityToGhostsPenlaty += (blockDistance <= 1.25) ? 10000 : (2000 / blockDistance);
+			}
+		}
+	}
+
+	/*
+	 * This method is required because even tho i use iddlePenalty, it only counts
+	 * as staying in the same place.
+	 * 
+	 * The problem is that if pacman stays around an area just going back and forth
+	 * it is indeed idle movement but it woudn't count as a idle.
+	 */
+	private void calculateIdlenessPenalty(Point blockVisited, int currentStep) {
+		recentVisits.addLast(new int[] { blockVisited.x, blockVisited.y, currentStep });
+
+		while (!recentVisits.isEmpty() && (currentStep - recentVisits.getFirst()[2] > TIME_WINDOW)) { 
+			int[] oldVisit = recentVisits.removeFirst();
+			Point oldBlock = new Point(oldVisit[0], oldVisit[1]);
+			int frequency = visitCounts.getOrDefault(oldBlock, 0);
+			if (frequency != 0) {
+				visitCounts.put(oldBlock, frequency - 1);
+			}
+		}
+
+		if (visitCounts.get(blockVisited) >= 2) {
+			iddlePenalty += 2500;
+			visitCounts.put(blockVisited, 0);
+		}
 	}
 }
